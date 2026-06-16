@@ -88,11 +88,10 @@ assets = "assets"
 build_targets = ["aarch64-linux-android"]
 resources = "android-res"
 strip = "strip"
-runtime_libs = "target/android-libs"
 
 [package.metadata.android.sdk]
 min_sdk_version = 26
-target_sdk_version = 35
+target_sdk_version = 36
 ```
 
 - [ ] **Step 2: Create Slint build script**
@@ -1630,6 +1629,8 @@ Expected: commit succeeds.
 
 **Files:**
 - Create: `.cargo/config.toml`
+- Create: `assets/.gitkeep`
+- Create: `android-res/.gitkeep`
 - Modify: `Cargo.toml` if Android packaging validation requires metadata corrections.
 
 - [ ] **Step 1: Add Android target notes**
@@ -1638,7 +1639,13 @@ Create `.cargo/config.toml`:
 
 ```toml
 [target.aarch64-linux-android]
-linker = "aarch64-linux-android-clang"
+linker = "/Users/zhaogj/Library/Android/sdk/ndk/30.0.14904198/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android26-clang"
+```
+
+Create empty placeholder files so cargo-apk metadata paths exist:
+
+```bash
+touch assets/.gitkeep android-res/.gitkeep
 ```
 
 - [ ] **Step 2: Install Android target if missing**
@@ -1666,7 +1673,7 @@ Expected: `cargo-apk` installs successfully or is already installed.
 Run:
 
 ```bash
-cargo apk build --target aarch64-linux-android
+cargo apk build --lib --target aarch64-linux-android
 ```
 
 Expected: command exits 0 and produces a debug APK under `target/`.
@@ -1676,7 +1683,7 @@ Expected: command exits 0 and produces a debug APK under `target/`.
 If Step 4 reports a metadata error, modify only `[package.metadata.android]` in `Cargo.toml` according to the exact error message. Then rerun:
 
 ```bash
-cargo apk build --target aarch64-linux-android
+cargo apk build --lib --target aarch64-linux-android
 ```
 
 Expected: command exits 0.
@@ -1709,7 +1716,7 @@ Create `docs/implementation/manual-verification.md`:
 - Use a physical Android device.
 - Enable Android system Wi-Fi hotspot from Settings.
 - Connect at least one client device to the hotspot.
-- Build the APK with `cargo apk build --target aarch64-linux-android`.
+- Build the APK with `cargo apk build --lib --target aarch64-linux-android`.
 - Install the APK with `adb install -r <apk-path>`.
 
 ## Foreground Monitoring
@@ -1772,7 +1779,7 @@ Run:
 ```bash
 cargo test
 cargo build
-cargo apk build --target aarch64-linux-android
+cargo apk build --lib --target aarch64-linux-android
 ```
 
 Expected: all commands PASS.
