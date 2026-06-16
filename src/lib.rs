@@ -1,4 +1,5 @@
 pub mod model;
+pub mod reducer;
 pub mod ring_buffer;
 
 slint::include_modules!();
