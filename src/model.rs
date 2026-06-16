@@ -59,16 +59,16 @@ impl DashboardState {
     pub fn initial() -> Self {
         Self {
             status: SessionStatus::Unknown,
-            status_reason: "Waiting for enough samples".into(),
+            status_reason: "等待足够采样".into(),
             session_duration_millis: 0,
             session_rx_bytes: None,
             session_tx_bytes: None,
             speed: None,
             connected_device_count: MetricAvailability::Unavailable {
-                reason: "Waiting for enough samples".into(),
+                reason: "等待足够采样".into(),
             },
             battery: MetricAvailability::Unavailable {
-                reason: "Waiting for enough samples".into(),
+                reason: "等待足够采样".into(),
             },
             speed_trend: Vec::new(),
             battery_trend: Vec::new(),

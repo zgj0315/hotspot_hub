@@ -3,141 +3,163 @@ import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 component MetricCard inherits Rectangle {
     in property <string> label;
     in property <string> value;
+    in property <length> value-size: 24px;
 
-    border-radius: 14px;
+    border-radius: 12px;
     background: #1e293b;
-    height: 92px;
+    height: 88px;
+    min-width: 0px;
 
     VerticalBox {
         padding: 12px;
-        spacing: 6px;
+        spacing: 7px;
 
         Text {
             text: root.label;
             color: #94a3b8;
-            font-size: 13px;
+            font-size: 12px;
+            overflow: elide;
         }
 
         Text {
             text: root.value;
             color: #f8fafc;
-            font-size: 24px;
+            font-size: root.value-size;
             font-weight: 700;
+            overflow: elide;
         }
     }
 }
 
 component SectionCard inherits Rectangle {
-    border-radius: 18px;
+    border-radius: 14px;
     background: #1e293b;
 }
 
 export component MainWindow inherits Window {
     title: "Hotspot Hub";
-    width: 360px;
-    height: 720px;
+    preferred-width: 392px;
+    preferred-height: 780px;
+    default-font-family: "Noto Sans CJK SC";
     background: #0f172a;
 
-    in property <string> status: "Unknown";
-    in property <string> status-reason: "Waiting for samples";
-    in property <string> elapsed: "0m";
+    in property <string> status: "未知";
+    in property <string> status-reason: "等待采样";
+    in property <string> elapsed: "0 分钟";
     in property <string> session-traffic: "--";
     in property <string> down-speed: "--";
     in property <string> up-speed: "--";
-    in property <string> connected-count: "Restricted";
+    in property <string> connected-count: "受限";
     in property <string> battery: "--";
     in property <string> temperature: "--";
-    in property <string> speed-trend: "Waiting for samples";
-    in property <string> battery-trend: "Battery samples: 0";
-    in property <string> temperature-trend: "Temperature samples: 0";
-    in property <string> last-updated: "Waiting for first sample";
+    in property <string> speed-trend: "速度样本：0";
+    in property <string> battery-trend: "电量样本：0";
+    in property <string> temperature-trend: "温度样本：0";
+    in property <string> last-updated: "等待第一次采样";
 
-    VerticalBox {
-        padding: 16px;
-        spacing: 12px;
+    Rectangle {
+        width: min(parent.width - 32px, 368px);
+        height: parent.height;
+        x: (parent.width - self.width) / 2;
+        background: transparent;
 
-        HorizontalBox {
-            spacing: 10px;
+        VerticalBox {
+            padding-top: 18px;
+            padding-bottom: 18px;
+            spacing: 12px;
 
-            VerticalBox {
-                Text {
-                    text: "Hotspot Hub";
-                    color: #94a3b8;
-                    font-size: 14px;
+            HorizontalBox {
+                spacing: 12px;
+                height: 66px;
+
+                VerticalBox {
+                    spacing: 3px;
+                    Text {
+                        text: "热点中枢";
+                        color: #94a3b8;
+                        font-size: 14px;
+                    }
+                    Text {
+                        text: "热点会话";
+                        color: #f8fafc;
+                        font-size: 28px;
+                        font-weight: 700;
+                    }
                 }
-                Text {
-                    text: "Hotspot session";
-                    color: #f8fafc;
-                    font-size: 26px;
-                    font-weight: 700;
+
+                Rectangle {
+                    width: 88px;
+                    height: 34px;
+                    border-radius: 17px;
+                    background: status == "稳定" ? #14532d : status == "注意" ? #854d0e : status == "风险" ? #7f1d1d : #334155;
+                    Text {
+                        text: status;
+                        color: white;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                        font-size: 14px;
+                        font-weight: 700;
+                    }
                 }
             }
 
-            Rectangle {
-                width: 96px;
-                height: 34px;
-                border-radius: 17px;
-                background: status == "Stable" ? #14532d : status == "Attention" ? #854d0e : status == "Risk" ? #7f1d1d : #334155;
-                Text {
-                    text: status;
-                    color: white;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                    font-size: 13px;
-                }
+            Text {
+                text: status-reason;
+                color: #cbd5e1;
+                font-size: 14px;
+                height: 40px;
+                wrap: word-wrap;
+                vertical-alignment: top;
             }
-        }
 
-        Text {
-            text: status-reason;
-            color: #cbd5e1;
-            font-size: 14px;
-            wrap: word-wrap;
-        }
-
-        HorizontalBox {
-            spacing: 10px;
-            MetricCard { label: "Elapsed"; value: elapsed; }
-            MetricCard { label: "Session traffic"; value: session-traffic; }
-        }
-
-        SectionCard {
-            height: 160px;
-            VerticalBox {
-                padding: 14px;
+            HorizontalBox {
                 spacing: 10px;
-                Text { text: "Real-time speed"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
-                HorizontalBox {
-                    spacing: 10px;
-                    MetricCard { label: "Down"; value: down-speed; }
-                    MetricCard { label: "Up"; value: up-speed; }
+                height: 88px;
+                MetricCard { label: "已运行"; value: elapsed; }
+                MetricCard { label: "会话流量"; value: session-traffic; }
+            }
+
+            SectionCard {
+                height: 156px;
+                VerticalBox {
+                    padding: 14px;
+                    spacing: 9px;
+                    Text { text: "实时速度"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
+                    HorizontalBox {
+                        spacing: 10px;
+                        height: 82px;
+                        MetricCard { label: "下行"; value: down-speed; value-size: 22px; }
+                        MetricCard { label: "上行"; value: up-speed; value-size: 22px; }
+                    }
+                    Text { text: speed-trend; color: #38bdf8; font-size: 13px; }
                 }
-                Text { text: speed-trend; color: #38bdf8; font-size: 14px; }
             }
-        }
 
-        HorizontalBox {
-            spacing: 8px;
-            MetricCard { label: "Devices"; value: connected-count; }
-            MetricCard { label: "Battery"; value: battery; }
-            MetricCard { label: "Temp"; value: temperature; }
-        }
-
-        SectionCard {
-            height: 98px;
-            VerticalBox {
-                padding: 14px;
-                spacing: 6px;
-                Text { text: "Battery and temperature"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
-                Text { text: battery-trend; color: #94a3b8; font-size: 13px; }
-                Text { text: temperature-trend; color: #94a3b8; font-size: 13px; }
+            HorizontalBox {
+                spacing: 10px;
+                height: 88px;
+                MetricCard { label: "设备"; value: connected-count; value-size: 22px; }
+                MetricCard { label: "电量"; value: battery; value-size: 22px; }
+                MetricCard { label: "温度"; value: temperature; value-size: 22px; }
             }
-        }
 
-        Text {
-            text: last-updated;
-            color: #94a3b8;
-            font-size: 12px;
+            SectionCard {
+                height: 98px;
+                VerticalBox {
+                    padding: 14px;
+                    spacing: 6px;
+                    Text { text: "电量与温度"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
+                    Text { text: battery-trend; color: #94a3b8; font-size: 13px; }
+                    Text { text: temperature-trend; color: #94a3b8; font-size: 13px; }
+                }
+            }
+
+            Text {
+                text: last-updated;
+                color: #94a3b8;
+                font-size: 12px;
+                height: 20px;
+            }
         }
     }
 }

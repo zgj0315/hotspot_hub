@@ -1,5 +1,8 @@
-use crate::format::{format_bytes, format_duration, format_speed};
-use crate::model::{BatteryReading, DashboardState, MetricAvailability, MetricSample, SessionStatus};
+use crate::format::{
+    format_bytes, format_duration, format_last_updated, format_sample_count, format_speed,
+    format_status,
+};
+use crate::model::{BatteryReading, DashboardState, MetricAvailability, MetricSample};
 use crate::reducer::SessionReducer;
 use crate::sources::{BatterySource, Clock, ConnectedDeviceCountSource, TrafficSource};
 use crate::MainWindow;
@@ -115,7 +118,7 @@ where
 }
 
 fn apply_state(window: &MainWindow, state: &DashboardState) {
-    window.set_status(status_text(state.status).into());
+    window.set_status(format_status(state.status).into());
     window.set_status_reason(state.status_reason.clone().into());
     window.set_elapsed(format_duration(state.session_duration_millis).into());
     window.set_session_traffic(
@@ -136,24 +139,12 @@ fn apply_state(window: &MainWindow, state: &DashboardState) {
     window.set_connected_count(format_connected(&state.connected_device_count).into());
     window.set_battery(format_battery(&state.battery).into());
     window.set_temperature(format_temperature(&state.battery).into());
-    window.set_speed_trend(format!("Speed samples: {}", state.speed_trend.len()).into());
-    window.set_battery_trend(format!("Battery samples: {}", state.battery_trend.len()).into());
-    window.set_temperature_trend(
-        format!("Temperature samples: {}", state.temperature_trend.len()).into(),
-    );
-    window.set_last_updated(match state.last_updated_millis {
-        Some(value) => SharedString::from(format!("Updated {value}")),
-        None => SharedString::from("Waiting for first sample"),
-    });
-}
-
-fn status_text(status: SessionStatus) -> &'static str {
-    match status {
-        SessionStatus::Stable => "Stable",
-        SessionStatus::Attention => "Attention",
-        SessionStatus::Risk => "Risk",
-        SessionStatus::Unknown => "Unknown",
-    }
+    window.set_speed_trend(format_sample_count("速度", state.speed_trend.len()).into());
+    window.set_battery_trend(format_sample_count("电量", state.battery_trend.len()).into());
+    window.set_temperature_trend(format_sample_count("温度", state.temperature_trend.len()).into());
+    window.set_last_updated(SharedString::from(format_last_updated(
+        state.last_updated_millis,
+    )));
 }
 
 fn total_bytes(rx: Option<u64>, tx: Option<u64>) -> Option<u64> {
@@ -163,7 +154,7 @@ fn total_bytes(rx: Option<u64>, tx: Option<u64>) -> Option<u64> {
 fn format_connected(value: &MetricAvailability<u32>) -> String {
     match value {
         MetricAvailability::Available(count) => count.to_string(),
-        MetricAvailability::Unavailable { .. } => "Restricted".into(),
+        MetricAvailability::Unavailable { .. } => "受限".into(),
     }
 }
 
@@ -181,7 +172,7 @@ fn format_temperature(value: &MetricAvailability<BatteryReading>) -> String {
     match value {
         MetricAvailability::Available(reading) => reading
             .temperature_celsius
-            .map(|temperature| format!("{temperature:.0}C"))
+            .map(|temperature| format!("{temperature:.0}°C"))
             .unwrap_or_else(|| "--".into()),
         MetricAvailability::Unavailable { .. } => "--".into(),
     }

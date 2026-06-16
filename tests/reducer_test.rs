@@ -50,10 +50,7 @@ fn marks_unavailable_traffic_as_risk() {
     let state = reducer.accept(sample);
 
     assert_eq!(state.status, SessionStatus::Risk);
-    assert_eq!(
-        state.status_reason,
-        "Traffic counters unavailable on this device"
-    );
+    assert_eq!(state.status_reason, "此设备不允许读取流量计数");
     assert!(state.speed.is_none());
 }
 
@@ -68,7 +65,7 @@ fn marks_connected_count_unavailable_as_attention() {
     let state = reducer.accept(sample);
 
     assert_eq!(state.status, SessionStatus::Attention);
-    assert_eq!(state.status_reason, "Connected count restricted by system");
+    assert_eq!(state.status_reason, "系统限制读取连接设备数");
 }
 
 #[test]
@@ -84,7 +81,7 @@ fn marks_critical_battery_as_risk() {
     let state = reducer.accept(sample);
 
     assert_eq!(state.status, SessionStatus::Risk);
-    assert_eq!(state.status_reason, "Battery critically low");
+    assert_eq!(state.status_reason, "电量严重偏低");
 }
 
 #[test]

@@ -116,44 +116,51 @@ impl SessionReducer {
         speed: Option<&SpeedSnapshot>,
     ) -> (SessionStatus, String) {
         if let MetricAvailability::Unavailable { reason } = &sample.traffic {
-            return (SessionStatus::Risk, reason.clone());
+            return (SessionStatus::Risk, localized_reason(reason).into());
         }
 
         let battery = match &sample.battery {
             MetricAvailability::Available(value) => value,
             MetricAvailability::Unavailable { reason } => {
-                return (SessionStatus::Attention, reason.clone());
+                return (SessionStatus::Attention, localized_reason(reason).into());
             }
         };
 
         if battery.level_percent.is_some_and(|level| level < 10) && !battery.is_charging {
-            return (SessionStatus::Risk, "Battery critically low".into());
+            return (SessionStatus::Risk, "电量严重偏低".into());
         }
         if battery
             .temperature_celsius
             .is_some_and(|temperature| temperature >= 45.0)
         {
-            return (SessionStatus::Risk, "Temperature high".into());
+            return (SessionStatus::Risk, "温度过高".into());
         }
         if battery.level_percent.is_some_and(|level| level < 20) {
-            return (SessionStatus::Attention, "Battery low".into());
+            return (SessionStatus::Attention, "电量偏低".into());
         }
         if battery
             .temperature_celsius
             .is_some_and(|temperature| temperature >= 40.0)
         {
-            return (SessionStatus::Attention, "Temperature elevated".into());
+            return (SessionStatus::Attention, "温度偏高".into());
         }
         if let MetricAvailability::Unavailable { reason } = &sample.connected_device_count {
-            return (SessionStatus::Attention, reason.clone());
+            return (SessionStatus::Attention, localized_reason(reason).into());
         }
         if speed.is_none() {
-            return (SessionStatus::Unknown, "Waiting for enough samples".into());
+            return (SessionStatus::Unknown, "等待足够采样".into());
         }
 
-        (
-            SessionStatus::Stable,
-            "Hotspot session looks stable".into(),
-        )
+        (SessionStatus::Stable, "热点会话状态稳定".into())
+    }
+}
+
+fn localized_reason(reason: &str) -> &str {
+    match reason {
+        "Traffic counters unavailable on this device" => "此设备不允许读取流量计数",
+        "Connected count restricted by system" => "系统限制读取连接设备数",
+        "Waiting for enough samples" => "等待足够采样",
+        "Battery state unavailable" => "无法读取电池状态",
+        _ => reason,
     }
 }

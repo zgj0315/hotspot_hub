@@ -1,34 +1,101 @@
-# Hotspot Hub Manual Verification
+# Hotspot Hub 手工验证
 
-## Device Setup
+## 准备
 
-- Use a physical Android device.
-- Enable Android system Wi-Fi hotspot from Settings.
-- Connect at least one client device to the hotspot.
-- Build the APK with `cargo apk build --lib --target aarch64-linux-android`.
-- Install the APK with `adb install -r <apk-path>`.
+- Android 手机已开启 Wi-Fi 热点，并开启 USB 调试。
+- 电脑已安装 Rust、`cargo-apk`、Android SDK Platform 36 和 Android NDK。
+- 本机 NDK 路径：
 
-## Foreground Monitoring
+```sh
+/Users/zhaogj/Library/Android/sdk/ndk/30.0.14904198
+```
 
-- Open Hotspot Hub.
-- Confirm the home screen is read-only and has no hotspot controls.
-- Confirm elapsed time increases.
-- Confirm upload/download speed refreshes about once per second.
-- Confirm session traffic increases when a connected client loads data.
-- Confirm battery and temperature are visible.
-- Confirm connected-device count shows `Restricted` or a count, but never silently displays `0` when unavailable.
+首次准备：
 
-## Background And Lock Behavior
+```sh
+rustup target add aarch64-linux-android
+cargo install cargo-apk
+adb devices
+```
 
-- Press Home and leave the app for at least 2 minutes.
-- Reopen the app and confirm it did not crash.
-- Lock the screen for at least 2 minutes.
-- Unlock and reopen the app.
-- Confirm the app did not keep a visible high-frequency UI update while backgrounded.
+如果连接了多台设备，后续 `adb` 命令加上 `-s <serial>`。
 
-## Long Session
+## 编译
 
-- Run a mixed foreground/background session for 2 hours.
-- Confirm the app remains responsive.
-- Confirm trend sample counts remain bounded.
-- Confirm no repeated disk writes are visible in logcat from Hotspot Hub.
+Debug 包：
+
+```sh
+ANDROID_NDK_ROOT=/Users/zhaogj/Library/Android/sdk/ndk/30.0.14904198 \
+ANDROID_NDK=/Users/zhaogj/Library/Android/sdk/ndk/30.0.14904198 \
+cargo apk build --lib --target aarch64-linux-android
+```
+
+输出：
+
+```sh
+target/debug/apk/HotspotHub.apk
+```
+
+Release 包：
+
+```sh
+ANDROID_NDK_ROOT=/Users/zhaogj/Library/Android/sdk/ndk/30.0.14904198 \
+ANDROID_NDK=/Users/zhaogj/Library/Android/sdk/ndk/30.0.14904198 \
+CARGO_APK_RELEASE_KEYSTORE=/Users/zhaogj/.android/debug.keystore \
+CARGO_APK_RELEASE_KEYSTORE_PASSWORD=android \
+cargo apk build --release --lib --target aarch64-linux-android
+```
+
+输出：
+
+```sh
+target/release/apk/HotspotHub.apk
+```
+
+说明：这里的 release 包使用 debug keystore，只适合测试机安装。正式发布必须换成正式 keystore，且不能把 keystore 或密码提交到仓库。
+
+## 安装和启动
+
+安装 release 包：
+
+```sh
+adb install -r target/release/apk/HotspotHub.apk
+adb shell monkey -p com.example.hotspothub 1
+```
+
+如果签名不兼容，测试机可先卸载再安装：
+
+```sh
+adb uninstall com.example.hotspothub
+adb install target/release/apk/HotspotHub.apk
+```
+
+## 冒烟验证
+
+手机界面检查：
+
+- 首页为只读信息面板，没有热点控制按钮。
+- 界面文字为简体中文，布局在手机屏幕中正常居中。
+- 已运行时间递增，实时速度约每秒刷新。
+- 会话流量、电量、温度可见。
+- 设备数量显示 `受限` 或实际数量，不能在无法读取时静默显示 `0`。
+- Home/锁屏后重新打开，应用不崩溃。
+
+ADB 检查：
+
+```sh
+adb shell pidof com.example.hotspothub
+adb shell dumpsys activity activities
+adb logcat -d -e FATAL
+adb shell screencap -p /sdcard/hotspot_hub.png
+adb pull /sdcard/hotspot_hub.png /tmp/hotspot_hub.png
+```
+
+预期：应用进程存在，Activity 为 `RESUMED`，logcat 没有 `FATAL`。
+
+## 最近一次记录
+
+- 日期：2026-06-16
+- 设备：`30906b3e`
+- APK：`target/release/apk/HotspotHub.apk`
+- 结果：release 包安装成功，应用前台运行，未发现 `FATAL`。
