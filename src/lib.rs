@@ -1,3 +1,6 @@
+pub mod model;
+pub mod ring_buffer;
+
 slint::include_modules!();
 
 pub fn run_app() -> Result<(), slint::PlatformError> {
