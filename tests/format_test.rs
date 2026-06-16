@@ -1,6 +1,6 @@
 use hotspot_hub::format::{
-    format_bytes, format_connected_count, format_duration, format_last_updated,
-    format_sample_count, format_speed, format_status,
+    format_bytes, format_connected_count, format_duration, format_last_updated, format_speed,
+    format_status,
 };
 use hotspot_hub::model::{MetricAvailability, SessionStatus};
 
@@ -35,11 +35,6 @@ fn formats_status_in_simplified_chinese() {
     assert_eq!(format_status(SessionStatus::Stable), "稳定");
     assert_eq!(format_status(SessionStatus::Attention), "注意");
     assert_eq!(format_status(SessionStatus::Risk), "风险");
-}
-
-#[test]
-fn formats_sample_count_in_simplified_chinese() {
-    assert_eq!(format_sample_count("速度", 44), "速度样本：44");
 }
 
 #[test]

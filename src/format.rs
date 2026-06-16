@@ -51,10 +51,6 @@ pub fn format_connected_count(value: &MetricAvailability<u32>) -> String {
     }
 }
 
-pub fn format_sample_count(label: &str, count: usize) -> String {
-    format!("{label}样本：{count}")
-}
-
 pub fn format_last_updated(value: Option<u64>) -> &'static str {
     match value {
         Some(_) => "刚刚更新",

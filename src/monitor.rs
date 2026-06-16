@@ -1,6 +1,6 @@
 use crate::format::{
-    format_bytes, format_connected_count, format_duration, format_last_updated,
-    format_sample_count, format_speed, format_status,
+    format_bytes, format_connected_count, format_duration, format_last_updated, format_speed,
+    format_status,
 };
 use crate::model::{BatteryReading, DashboardState, MetricAvailability, MetricSample};
 use crate::reducer::SessionReducer;
@@ -138,9 +138,6 @@ fn apply_state(window: &MainWindow, state: &DashboardState) {
     window.set_connected_count(format_connected_count(&state.connected_device_count).into());
     window.set_battery(format_battery(&state.battery).into());
     window.set_temperature(format_temperature(&state.battery).into());
-    window.set_speed_trend(format_sample_count("速度", state.speed_trend.len()).into());
-    window.set_battery_trend(format_sample_count("电量", state.battery_trend.len()).into());
-    window.set_temperature_trend(format_sample_count("温度", state.temperature_trend.len()).into());
     window.set_last_updated(SharedString::from(format_last_updated(
         state.last_updated_millis,
     )));

@@ -52,9 +52,6 @@ export component MainWindow inherits Window {
     in property <string> connected-count: "系统限制";
     in property <string> battery: "--";
     in property <string> temperature: "--";
-    in property <string> speed-trend: "速度样本：0";
-    in property <string> battery-trend: "电量样本：0";
-    in property <string> temperature-trend: "温度样本：0";
     in property <string> last-updated: "等待第一次采样";
 
     Rectangle {
@@ -123,7 +120,7 @@ export component MainWindow inherits Window {
                 height: 156px;
                 VerticalBox {
                     padding: 14px;
-                    spacing: 9px;
+                    spacing: 12px;
                     Text { text: "实时速度"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
                     HorizontalBox {
                         spacing: 10px;
@@ -131,7 +128,6 @@ export component MainWindow inherits Window {
                         MetricCard { label: "下行"; value: down-speed; value-size: 22px; }
                         MetricCard { label: "上行"; value: up-speed; value-size: 22px; }
                     }
-                    Text { text: speed-trend; color: #38bdf8; font-size: 13px; }
                 }
             }
 
@@ -141,17 +137,6 @@ export component MainWindow inherits Window {
                 MetricCard { label: "设备"; value: connected-count; value-size: 22px; }
                 MetricCard { label: "电量"; value: battery; value-size: 22px; }
                 MetricCard { label: "温度"; value: temperature; value-size: 22px; }
-            }
-
-            SectionCard {
-                height: 98px;
-                VerticalBox {
-                    padding: 14px;
-                    spacing: 6px;
-                    Text { text: "电量与温度"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
-                    Text { text: battery-trend; color: #94a3b8; font-size: 13px; }
-                    Text { text: temperature-trend; color: #94a3b8; font-size: 13px; }
-                }
             }
 
             Text {
