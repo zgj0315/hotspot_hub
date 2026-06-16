@@ -1,6 +1,6 @@
 use crate::format::{
-    format_bytes, format_duration, format_last_updated, format_sample_count, format_speed,
-    format_status,
+    format_bytes, format_connected_count, format_duration, format_last_updated,
+    format_sample_count, format_speed, format_status,
 };
 use crate::model::{BatteryReading, DashboardState, MetricAvailability, MetricSample};
 use crate::reducer::SessionReducer;
@@ -87,8 +87,7 @@ fn schedule_next_tick<Traffic, Battery, Connected, Time>(
     timer: Rc<Timer>,
     weak: Weak<MainWindow>,
     monitor: Rc<RefCell<HotspotMonitor<Traffic, Battery, Connected, Time>>>,
-)
-where
+) where
     Traffic: TrafficSource + 'static,
     Battery: BatterySource + 'static,
     Connected: ConnectedDeviceCountSource + 'static,
@@ -136,7 +135,7 @@ fn apply_state(window: &MainWindow, state: &DashboardState) {
     window.set_up_speed(
         format_speed(state.speed.as_ref().map(|speed| speed.up_bytes_per_second)).into(),
     );
-    window.set_connected_count(format_connected(&state.connected_device_count).into());
+    window.set_connected_count(format_connected_count(&state.connected_device_count).into());
     window.set_battery(format_battery(&state.battery).into());
     window.set_temperature(format_temperature(&state.battery).into());
     window.set_speed_trend(format_sample_count("速度", state.speed_trend.len()).into());
@@ -149,13 +148,6 @@ fn apply_state(window: &MainWindow, state: &DashboardState) {
 
 fn total_bytes(rx: Option<u64>, tx: Option<u64>) -> Option<u64> {
     Some(rx? + tx?)
-}
-
-fn format_connected(value: &MetricAvailability<u32>) -> String {
-    match value {
-        MetricAvailability::Available(count) => count.to_string(),
-        MetricAvailability::Unavailable { .. } => "受限".into(),
-    }
 }
 
 fn format_battery(value: &MetricAvailability<BatteryReading>) -> String {

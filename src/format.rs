@@ -1,4 +1,4 @@
-use crate::model::SessionStatus;
+use crate::model::{MetricAvailability, SessionStatus};
 
 pub fn format_duration(milliseconds: u64) -> String {
     let total_minutes = milliseconds / 60_000;
@@ -41,6 +41,13 @@ pub fn format_status(status: SessionStatus) -> &'static str {
         SessionStatus::Attention => "注意",
         SessionStatus::Risk => "风险",
         SessionStatus::Unknown => "未知",
+    }
+}
+
+pub fn format_connected_count(value: &MetricAvailability<u32>) -> String {
+    match value {
+        MetricAvailability::Available(count) => format!("{count} 台（估算）"),
+        MetricAvailability::Unavailable { .. } => "系统限制".into(),
     }
 }
 

@@ -1853,6 +1853,7 @@ dependencies = [
  "android-activity 0.6.1",
  "android_logger",
  "jni 0.21.1",
+ "libc",
  "log",
  "ndk-context",
  "slint",

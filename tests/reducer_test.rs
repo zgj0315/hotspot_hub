@@ -55,17 +55,27 @@ fn marks_unavailable_traffic_as_risk() {
 }
 
 #[test]
-fn marks_connected_count_unavailable_as_attention() {
+fn ignores_unavailable_connected_count_for_session_health() {
     let mut reducer = SessionReducer::new(5);
     let mut sample = baseline();
     sample.connected_device_count = MetricAvailability::Unavailable {
         reason: "Connected count restricted by system".into(),
     };
+    reducer.accept(sample);
 
-    let state = reducer.accept(sample);
+    let mut second = baseline();
+    second.timestamp_millis = 2_000;
+    second.traffic = MetricAvailability::Available(TrafficReading {
+        rx_bytes: 3_000,
+        tx_bytes: 1_500,
+    });
+    second.connected_device_count = MetricAvailability::Unavailable {
+        reason: "Connected count restricted by system".into(),
+    };
+    let state = reducer.accept(second);
 
-    assert_eq!(state.status, SessionStatus::Attention);
-    assert_eq!(state.status_reason, "系统限制读取连接设备数");
+    assert_eq!(state.status, SessionStatus::Stable);
+    assert_eq!(state.status_reason, "热点会话状态稳定");
 }
 
 #[test]

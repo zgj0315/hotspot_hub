@@ -1,3 +1,4 @@
+pub mod connected_devices;
 pub mod format;
 pub mod model;
 pub mod monitor;
@@ -8,9 +9,9 @@ pub mod sources;
 
 slint::include_modules!();
 
-use crate::monitor::{start_monitor, HotspotMonitor};
 #[cfg(target_os = "android")]
 use crate::monitor::set_foreground_active;
+use crate::monitor::{start_monitor, HotspotMonitor};
 use crate::sources::SystemClock;
 
 pub fn run_app() -> Result<(), slint::PlatformError> {
@@ -27,7 +28,7 @@ pub fn run_app() -> Result<(), slint::PlatformError> {
                 HotspotMonitor::new(
                     AndroidTrafficSource,
                     AndroidBatterySource,
-                    AndroidConnectedDeviceCountSource,
+                    AndroidConnectedDeviceCountSource::new(),
                     SystemClock,
                 ),
             )
@@ -59,18 +60,18 @@ fn android_main(app: slint::android::AndroidApp) {
     use slint::android::android_activity::{MainEvent, PollEvent};
 
     android_logger::init_once(
-        android_logger::Config::default().with_max_level(log::LevelFilter::Info),
+        android_logger::Config::default()
+            .with_max_level(log::LevelFilter::Info)
+            .with_tag("HotspotHub"),
     );
-    slint::android::init_with_event_listener(app, |event| {
-        match event {
-            PollEvent::Main(MainEvent::Resume { .. }) | PollEvent::Main(MainEvent::Start) => {
-                set_foreground_active(true);
-            }
-            PollEvent::Main(MainEvent::Pause) | PollEvent::Main(MainEvent::Stop) => {
-                set_foreground_active(false);
-            }
-            _ => {}
+    slint::android::init_with_event_listener(app, |event| match event {
+        PollEvent::Main(MainEvent::Resume { .. }) | PollEvent::Main(MainEvent::Start) => {
+            set_foreground_active(true);
         }
+        PollEvent::Main(MainEvent::Pause) | PollEvent::Main(MainEvent::Stop) => {
+            set_foreground_active(false);
+        }
+        _ => {}
     })
     .expect("failed to initialize Slint Android backend");
     run_app().expect("failed to run Hotspot Hub");

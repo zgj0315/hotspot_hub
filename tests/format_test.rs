@@ -1,8 +1,8 @@
 use hotspot_hub::format::{
-    format_bytes, format_duration, format_last_updated, format_sample_count, format_speed,
-    format_status,
+    format_bytes, format_connected_count, format_duration, format_last_updated,
+    format_sample_count, format_speed, format_status,
 };
-use hotspot_hub::model::SessionStatus;
+use hotspot_hub::model::{MetricAvailability, SessionStatus};
 
 #[test]
 fn formats_duration_as_hours_and_minutes() {
@@ -46,4 +46,18 @@ fn formats_sample_count_in_simplified_chinese() {
 fn formats_last_updated_without_raw_timestamp() {
     assert_eq!(format_last_updated(Some(1781623527010)), "刚刚更新");
     assert_eq!(format_last_updated(None), "等待第一次采样");
+}
+
+#[test]
+fn formats_connected_count_as_estimate() {
+    assert_eq!(
+        format_connected_count(&MetricAvailability::Available(2)),
+        "2 台（估算）"
+    );
+    assert_eq!(
+        format_connected_count(&MetricAvailability::Unavailable {
+            reason: "Connected count restricted by system".into(),
+        }),
+        "系统限制"
+    );
 }

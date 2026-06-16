@@ -1,8 +1,16 @@
+use crate::connected_devices::{
+    estimate_count_from_arp, estimate_count_from_dumpsys_wifi, estimate_count_from_ip_neigh,
+    estimate_count_from_netlink,
+};
 use crate::model::{BatteryReading, MetricAvailability, TrafficReading};
 use crate::sources::{BatterySource, ConnectedDeviceCountSource, TrafficSource};
 use jni::objects::{JObject, JValue};
 use jni::sys::jobject;
 use jni::JavaVM;
+use std::process::Command;
+use std::time::{Duration, Instant};
+
+const CONNECTED_COUNT_REFRESH: Duration = Duration::from_secs(10);
 
 pub struct AndroidTrafficSource;
 
@@ -20,14 +28,126 @@ impl BatterySource for AndroidBatterySource {
     }
 }
 
-pub struct AndroidConnectedDeviceCountSource;
+pub struct AndroidConnectedDeviceCountSource {
+    cached: Option<(Instant, MetricAvailability<u32>)>,
+}
+
+impl AndroidConnectedDeviceCountSource {
+    pub fn new() -> Self {
+        Self { cached: None }
+    }
+}
 
 impl ConnectedDeviceCountSource for AndroidConnectedDeviceCountSource {
     fn read_connected_device_count(&mut self) -> MetricAvailability<u32> {
-        MetricAvailability::Unavailable {
-            reason: "Connected count restricted by system".into(),
+        if let Some((last_read, cached)) = &self.cached {
+            if last_read.elapsed() < CONNECTED_COUNT_REFRESH {
+                return cached.clone();
+            }
+        }
+
+        let value = match read_connected_count_best_effort() {
+            Some(count) => MetricAvailability::Available(count),
+            None => MetricAvailability::Unavailable {
+                reason: "Connected count restricted by system".into(),
+            },
+        };
+        self.cached = Some((Instant::now(), value.clone()));
+        value
+    }
+}
+
+fn read_connected_count_best_effort() -> Option<u32> {
+    match estimate_count_from_netlink() {
+        Some(count) => {
+            log::info!("connected count resolved by netlink: {count}");
+            return Some(count);
+        }
+        None => log::info!("connected count netlink path unavailable"),
+    }
+
+    if let Some(count) = read_connected_count_from_ip_command() {
+        return Some(count);
+    }
+
+    match std::fs::read_to_string("/proc/net/arp") {
+        Ok(arp) => {
+            let estimate = estimate_count_from_arp(&arp);
+            log::info!(
+                "connected count ARP path result={estimate:?}; {}",
+                summarize_arp_table(&arp)
+            );
+            if estimate.is_some() {
+                return estimate;
+            }
+        }
+        Err(error) => {
+            log::warn!("connected count ARP read failed: {error}");
         }
     }
+
+    read_connected_count_from_dumpsys_wifi()
+}
+
+fn summarize_arp_table(arp: &str) -> String {
+    let entries = arp
+        .lines()
+        .skip(1)
+        .take(8)
+        .filter_map(|line| {
+            let columns: Vec<&str> = line.split_whitespace().collect();
+            if columns.len() < 6 {
+                return None;
+            }
+            Some(format!("flags={} iface={}", columns[2], columns[5]))
+        })
+        .collect::<Vec<_>>();
+
+    if entries.is_empty() {
+        "arp entries=<empty>".into()
+    } else {
+        format!("arp entries={}", entries.join(", "))
+    }
+}
+
+fn read_connected_count_from_ip_command() -> Option<u32> {
+    let output = run_system_command("/system/bin/ip", &["neigh", "show"])?;
+    let estimate = estimate_count_from_ip_neigh(&output);
+    log::info!("connected count ip-neigh command result={estimate:?}");
+    estimate
+}
+
+fn read_connected_count_from_dumpsys_wifi() -> Option<u32> {
+    let output = run_system_command("/system/bin/dumpsys", &["wifi"])?;
+    let estimate = estimate_count_from_dumpsys_wifi(&output);
+    log::info!("connected count dumpsys-wifi command result={estimate:?}");
+    estimate
+}
+
+fn run_system_command(command: &str, args: &[&str]) -> Option<String> {
+    let output = match Command::new(command).args(args).output() {
+        Ok(output) => output,
+        Err(error) => {
+            log::warn!("connected count command failed to start: {command} {args:?}: {error}");
+            return None;
+        }
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let combined = if stderr.trim().is_empty() {
+        stdout.into_owned()
+    } else {
+        format!("{stdout}\n{stderr}")
+    };
+
+    log::info!(
+        "connected count command finished: {command} {args:?}, status={:?}, stdout_bytes={}, stderr_bytes={}",
+        output.status.code(),
+        output.stdout.len(),
+        output.stderr.len()
+    );
+    Some(combined)
 }
 
 fn java_vm() -> Result<JavaVM, String> {

@@ -75,7 +75,9 @@ impl SessionReducer {
         let MetricAvailability::Available(current_traffic) = &current.traffic else {
             return None;
         };
-        let elapsed = current.timestamp_millis.checked_sub(previous.timestamp_millis)?;
+        let elapsed = current
+            .timestamp_millis
+            .checked_sub(previous.timestamp_millis)?;
         if elapsed == 0 {
             return None;
         }
@@ -105,8 +107,16 @@ impl SessionReducer {
             return (None, None);
         };
         (
-            Some(current_traffic.rx_bytes.saturating_sub(base_traffic.rx_bytes)),
-            Some(current_traffic.tx_bytes.saturating_sub(base_traffic.tx_bytes)),
+            Some(
+                current_traffic
+                    .rx_bytes
+                    .saturating_sub(base_traffic.rx_bytes),
+            ),
+            Some(
+                current_traffic
+                    .tx_bytes
+                    .saturating_sub(base_traffic.tx_bytes),
+            ),
         )
     }
 
@@ -143,9 +153,6 @@ impl SessionReducer {
             .is_some_and(|temperature| temperature >= 40.0)
         {
             return (SessionStatus::Attention, "温度偏高".into());
-        }
-        if let MetricAvailability::Unavailable { reason } = &sample.connected_device_count {
-            return (SessionStatus::Attention, localized_reason(reason).into());
         }
         if speed.is_none() {
             return (SessionStatus::Unknown, "等待足够采样".into());

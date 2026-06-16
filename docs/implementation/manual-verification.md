@@ -78,7 +78,8 @@ adb install target/release/apk/HotspotHub.apk
 - 界面文字为简体中文，布局在手机屏幕中正常居中。
 - 已运行时间递增，实时速度约每秒刷新。
 - 会话流量、电量、温度可见。
-- 设备数量显示 `受限` 或实际数量，不能在无法读取时静默显示 `0`。
+- 设备数量来自 Android netlink/ARP 或 `ip neigh` 的 best-effort 估算，显示 `N 台（估算）`、`0 台（估算）` 或 `系统限制`。
+- `ip neigh` 路径只统计热点网卡上的 IPv4 活跃邻居，避免把已断开的 IPv6 缓存算进去。
 - Home/锁屏后重新打开，应用不崩溃。
 
 ADB 检查：
@@ -95,7 +96,7 @@ adb pull /sdcard/hotspot_hub.png /tmp/hotspot_hub.png
 
 ## 最近一次记录
 
-- 日期：2026-06-16
+- 日期：2026-06-17
 - 设备：`30906b3e`
 - APK：`target/release/apk/HotspotHub.apk`
-- 结果：release 包安装成功，应用前台运行，未发现 `FATAL`。
+- 结果：release 包安装成功，应用前台运行，未发现 `FATAL`。当前测试机通过 `ip neigh` 路径显示 `2 台（估算）`，与 `dumpsys wifi` 当前关联数一致。
