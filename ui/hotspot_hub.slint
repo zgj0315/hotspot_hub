@@ -1,36 +1,143 @@
-import { VerticalBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+component MetricCard inherits Rectangle {
+    in property <string> label;
+    in property <string> value;
+
+    border-radius: 14px;
+    background: #1e293b;
+    height: 92px;
+
+    VerticalBox {
+        padding: 12px;
+        spacing: 6px;
+
+        Text {
+            text: root.label;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        Text {
+            text: root.value;
+            color: #f8fafc;
+            font-size: 24px;
+            font-weight: 700;
+        }
+    }
+}
+
+component SectionCard inherits Rectangle {
+    border-radius: 18px;
+    background: #1e293b;
+}
 
 export component MainWindow inherits Window {
     title: "Hotspot Hub";
     width: 360px;
     height: 720px;
+    background: #0f172a;
 
     in property <string> status: "Unknown";
     in property <string> status-reason: "Waiting for samples";
+    in property <string> elapsed: "0m";
+    in property <string> session-traffic: "--";
+    in property <string> down-speed: "--";
+    in property <string> up-speed: "--";
+    in property <string> connected-count: "Restricted";
+    in property <string> battery: "--";
+    in property <string> temperature: "--";
+    in property <string> speed-trend: "Waiting for samples";
+    in property <string> battery-trend: "Battery samples: 0";
+    in property <string> temperature-trend: "Temperature samples: 0";
+    in property <string> last-updated: "Waiting for first sample";
 
     VerticalBox {
-        padding: 24px;
+        padding: 16px;
         spacing: 12px;
 
-        Text {
-            text: "Hotspot Hub";
-            font-size: 18px;
-            color: #94a3b8;
+        HorizontalBox {
+            spacing: 10px;
+
+            VerticalBox {
+                Text {
+                    text: "Hotspot Hub";
+                    color: #94a3b8;
+                    font-size: 14px;
+                }
+                Text {
+                    text: "Hotspot session";
+                    color: #f8fafc;
+                    font-size: 26px;
+                    font-weight: 700;
+                }
+            }
+
+            Rectangle {
+                width: 96px;
+                height: 34px;
+                border-radius: 17px;
+                background: status == "Stable" ? #14532d : status == "Attention" ? #854d0e : status == "Risk" ? #7f1d1d : #334155;
+                Text {
+                    text: status;
+                    color: white;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    font-size: 13px;
+                }
+            }
         }
 
         Text {
-            text: root.status;
-            font-size: 32px;
-            font-weight: 700;
-            color: #f8fafc;
-        }
-
-        Text {
-            text: root.status-reason;
-            font-size: 16px;
+            text: status-reason;
             color: #cbd5e1;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        HorizontalBox {
+            spacing: 10px;
+            MetricCard { label: "Elapsed"; value: elapsed; }
+            MetricCard { label: "Session traffic"; value: session-traffic; }
+        }
+
+        SectionCard {
+            height: 160px;
+            VerticalBox {
+                padding: 14px;
+                spacing: 10px;
+                Text { text: "Real-time speed"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
+                HorizontalBox {
+                    spacing: 10px;
+                    MetricCard { label: "Down"; value: down-speed; }
+                    MetricCard { label: "Up"; value: up-speed; }
+                }
+                Text { text: speed-trend; color: #38bdf8; font-size: 14px; }
+            }
+        }
+
+        HorizontalBox {
+            spacing: 8px;
+            MetricCard { label: "Devices"; value: connected-count; }
+            MetricCard { label: "Battery"; value: battery; }
+            MetricCard { label: "Temp"; value: temperature; }
+        }
+
+        SectionCard {
+            height: 98px;
+            VerticalBox {
+                padding: 14px;
+                spacing: 6px;
+                Text { text: "Battery and temperature"; color: #cbd5e1; font-size: 16px; font-weight: 700; }
+                Text { text: battery-trend; color: #94a3b8; font-size: 13px; }
+                Text { text: temperature-trend; color: #94a3b8; font-size: 13px; }
+            }
+        }
+
+        Text {
+            text: last-updated;
+            color: #94a3b8;
+            font-size: 12px;
         }
     }
-
-    background: #0f172a;
 }
