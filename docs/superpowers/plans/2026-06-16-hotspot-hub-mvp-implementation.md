@@ -69,7 +69,7 @@ name = "hotspot-hub"
 path = "src/main.rs"
 
 [dependencies]
-slint = { version = "1.17", features = ["backend-android-activity-06"] }
+slint = { version = "1.16.1", features = ["backend-android-activity-06"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android-activity = { version = "0.6", features = ["native-activity"] }
@@ -79,7 +79,7 @@ log = "0.4"
 ndk-context = "0.1"
 
 [build-dependencies]
-slint-build = "1.17"
+slint-build = "1.16.1"
 
 [package.metadata.android]
 package = "com.example.hotspothub"
@@ -110,7 +110,7 @@ fn main() {
 Create `ui/hotspot_hub.slint`:
 
 ```slint
-import { VerticalBox, Text } from "std-widgets.slint";
+import { VerticalBox } from "std-widgets.slint";
 
 export component MainWindow inherits Window {
     title: "Hotspot Hub";
@@ -1166,7 +1166,7 @@ Expected: commit succeeds.
 Replace `ui/hotspot_hub.slint`:
 
 ```slint
-import { VerticalBox, HorizontalBox, Text, Rectangle } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
 
 component MetricCard inherits Rectangle {
     in property <string> label;

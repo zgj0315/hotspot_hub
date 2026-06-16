@@ -1,0 +1,36 @@
+import { VerticalBox } from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "Hotspot Hub";
+    width: 360px;
+    height: 720px;
+
+    in property <string> status: "Unknown";
+    in property <string> status-reason: "Waiting for samples";
+
+    VerticalBox {
+        padding: 24px;
+        spacing: 12px;
+
+        Text {
+            text: "Hotspot Hub";
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        Text {
+            text: root.status;
+            font-size: 32px;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        Text {
+            text: root.status-reason;
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+    }
+
+    background: #0f172a;
+}

@@ -1,0 +1,41 @@
+[package]
+name = "hotspot_hub"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+publish = false
+
+[lib]
+name = "hotspot_hub"
+path = "src/lib.rs"
+crate-type = ["lib", "cdylib"]
+
+[[bin]]
+name = "hotspot-hub"
+path = "src/main.rs"
+
+[dependencies]
+slint = { version = "1.16.1", features = ["backend-android-activity-06"] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+android-activity = { version = "0.6", features = ["native-activity"] }
+android_logger = "0.15"
+jni = "0.21"
+log = "0.4"
+ndk-context = "0.1"
+
+[build-dependencies]
+slint-build = "1.16.1"
+
+[package.metadata.android]
+package = "com.example.hotspothub"
+apk_name = "HotspotHub"
+assets = "assets"
+build_targets = ["aarch64-linux-android"]
+resources = "android-res"
+strip = "strip"
+runtime_libs = "target/android-libs"
+
+[package.metadata.android.sdk]
+min_sdk_version = 26
+target_sdk_version = 35
